@@ -1,2 +1,2 @@
 # ece566
-ECE566 RTOS 
+ESP-32 Projects as featured in ECE566 Course at IUPUI
