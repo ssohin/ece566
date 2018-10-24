@@ -2,11 +2,12 @@
 #include "queue.h" //includes a lot of tools for creating a queue structure
 
 Queuehandle_t dhtq; //creates a queue data type
-
+int dhtdelay;
 
 void manager_task(){
 	while(1){
-		
+		readDHT();
+		vTaskDelay(dhtdelay / portTICK_RATE_MS );
 		
 	}
 }
