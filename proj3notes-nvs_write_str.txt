@@ -1,0 +1,23 @@
+nvs_handle my_handle = NULL; //call open() using this handle as both its output and the out_handle paramater
+
+esp_err_t nvs_open(char* name, open_mode, nvs_handle* out_handle)
+		Opens space in non-volatile storage with given namespace at default partition
+		name should be exactly 15 characters because all systems allow at least 15 characters but some have different maximums
+		open_mode can be NVS_READWRITE or NVS_READONLY, fairly self-explanatory
+		if successful (return code is zero) out_handle is returned and used in all the other nvs functions
+	
+esp_err_t nvs_set_str(nvs_handle handle, char* key, char* value)
+		Sets the value associated with the key you use. Actual storage isn't updated until nvs_commit is called
+		key is a string used as a "name" by the system (I think) so we can call that and it'll have an associated amount of memory
+		nvs_handle is the handle returned by the nvs_open function when that function runs without error
+	
+err_t nvs_get_str(nvs_handle handle, const char* key, const char* out_value, size_t* length)
+		Now THIS one gets interesting
+		If you use NULL for out-value, the required length for your string is put into the length argument
+		key is a string used as a name by the system so we can call that and the associated memory is found (probably?)
+		length is the length of the string we're expecting to be reading
+		out_value is a pointer to the string that's going to hold the output value
+		
+esp_err_t nvs_commit(nvs_handle handle)
+		Closes the handle
+		Also writes to nonvolatile storage all the things that handle did
