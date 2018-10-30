@@ -38,14 +38,16 @@ void DHT_task(void *pvParameter)
 		
 		// Bree: I had a for loop here but it wasn't working correctly
 		// Bree: this count down isn't actually counting obviously, and doesn't need to be in here
-		printf("10...\n9...\n8...\n7...\n6...\n5...\n4...\n3...\n2...\n1...\n");
-		
-		
+		for(int a= 0; a<10; a++)
+        {
+            printf("\n %d", &a);
+            vTaskDelay(1000 / portTICK_RATE_MS);
+        }
+                 		
 		// -- wait at least 10 sec before reading again ------------
 		// The interval of whole process must be beyond 10 seconds !! 
-		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
-		vTaskDelay( 10000 / portTICK_RATE_MS );
+		
 	}
 }
 
