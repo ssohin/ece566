@@ -1,10 +1,13 @@
 /* DHT11 temperature sensor library
+
    Usage:
    		Set DHT PIN using  setDHTPin(pin) command
    		getFtemp(); this returns temperature in F
+
    Sam Johnston 
    October 2016
    This example code is in the Public Domain (or CC0 licensed, at your option.)
+
    Unless required by applicable law or agreed to in writing, this
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +21,14 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 #include "sdkconfig.h"
-#include "dht11.h"
+#include "DHT11.h"
 
 
 int humidity = 0;
 int temperature = 0;
 int Ftemperature = 0;
 
-int DHT_DATA[3] = {0,0,0};
+int DHT_DATA[3] = [0,0,0]
 int DHT_PIN = 4;
 
 void setDHTPin(int PIN)
@@ -61,7 +64,7 @@ void sendStart()
   gpio_set_direction(DHT_PIN, GPIO_MODE_INPUT);
 }
 
-int getData(int type)
+int getData()
 {
   //Variables used in this function
   int counter = 0;
@@ -84,7 +87,7 @@ int getData(int type)
   {
       if(counter > 40)
       {
-            return DHT_TIMEOUT_ERROR;
+      	return DHT_TIMEOUT_ERROR;
       }	
       counter = counter + 1;
       ets_delay_us(1);
@@ -97,7 +100,7 @@ int getData(int type)
   {
   	if(counter > 80)
   	{
-            return DHT_TIMEOUT_ERROR;
+  		return DHT_TIMEOUT_ERROR;
   	}
   	counter = counter + 1;
   	ets_delay_us(1);
@@ -107,7 +110,7 @@ int getData(int type)
   {
   	if(counter > 80)
   	{
-            return DHT_TIMEOUT_ERROR;
+  		return DHT_TIMEOUT_ERROR;
   	}
   	counter = counter + 1;
   	ets_delay_us(1);
@@ -125,7 +128,7 @@ int getData(int type)
   	  {
   	  	if (counter > 55)
   	  	{
-            return DHT_TIMEOUT_ERROR;
+  	  	   return DHT_TIMEOUT_ERROR; 
   	  	}
   	  	counter = counter + 1;
   	  	ets_delay_us(1);
@@ -137,7 +140,7 @@ int getData(int type)
   	  {
   	  	if (counter > 75)
   	  	{
-            return DHT_TIMEOUT_ERROR;
+  	  	   return DHT_TIMEOUT_ERROR; 
   	  	}
   	  	counter = counter + 1;
   	  	ets_delay_us(1);
@@ -172,32 +175,28 @@ int getData(int type)
   {
   	return DHT_CHECKSUM_ERROR;
   }
-
-  if(type==0){
-    return humidity;
-  }
-  if(type==1){
-    return temperature;
-  }
-  if(type==2){
-    return Ftemperature;
-  }
-
-  return -1;
+  DHT_DATA = [temperature,Ftemperature, humidity];
+  return DHT_DATA;
 }
 
 int getFtemp()
 {
-	int Data  = getData(0);
-	return Data;	
+	int ftemp = 0;
+	int Data = getData();
+	ftemp = Data[1];
+	return ftemp;	
 }
 int getTemp()
 {
-  int Data = getData(1);
-	return Data;
+	int temp = 0;
+	int Data = getData();
+	temp = Data[0];
+	return temp;
 }
 int getHumidity()
 {
-  int Data  = getData(2);
-	return Data;
+	int humid = 0;
+	int Data = getData();
+	humid = Data[2];
+	return humid;
 }

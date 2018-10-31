@@ -7,22 +7,51 @@
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 #include "sensors.h"
-#include "string.h"
 
-class Sensor
-{
+
+/*
+The Sensor class has 4 pure virtual functions
+Each new sensor can be inherited from the class Sensor and can use it's configurations for
+Open, Read, Control and Close.
+*/
+class Sensor {
 public:
-    string SensorName;
-    int gpio;
-    template SensorData()
-
-        Open()
-        Ctl()
-        Read()
-        Close()
+    virtual void open() = 0;
+    virtual void read() = 0;
+    virtual void close() = 0;
+    virtual void ctl() = 0;
 };
 
-class TempSensor :pubic Sensor
+/*
+Sensor Definition Template:
+--------------------------------------
+--------------------------------------
+
+class sensorname : public Sensor
 {
-    
+ public:
+
+
+    int open(gpioPIN) {
+
+    }
+    void read() {
+
+    }
+    void close() {
+
+    }
+    void ctl() {
+
+    }
 };
+
+----------------------------------------
+----------------------------------------
+*/
+voidapp_main
+{
+   
+    
+}
+
