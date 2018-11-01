@@ -1,6 +1,11 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\DHT11",
+    "\\DHT11\\main",
+    "\\proj3",
+    "\\proj3\\main"
   ],
+  "SelectedNode": "\\proj3\\main\\proj3_main.c",
   "PreviewInSolutionExplorer": false
 }
