@@ -1,10 +1,4 @@
-//************************************************************************************
-By:	Bree Abernathy
-For:	TSL2561 Light-to-Digital sensor, for use with ESP32 with ESP-IDF
 
-Adapted from:	David Antliff
-( see https://github.com/DavidAntliff/esp32-tsl2561-example.git )
-//************************************************************************************
 # esp32-tsl2561-example
 
 [![Build Status](https://travis-ci.org/DavidAntliff/esp32-tsl2561-example.svg?branch=master)](https://travis-ci.org/DavidAntliff/esp32-tsl2561-example)
@@ -40,11 +34,11 @@ This application makes use of the following components (included as submodules):
 To run this example, connect one TSL2561 device to two GPIOs on the ESP32 (I2C SDA and SCL). 
 If external pull-up resistors are not provided with the sensor, add a 10 KOhm resistor from each GPIO to the 3.3V supply.
 
-//
-//	BREE:
-//	The TSL2561 comes with pullup resistors, but your device may not have them.
-//	To check your light sensor, look for "PU" printed on it, or check datasheet.
-//
+
+/*	BREE:
+	The TSL2561 comes with pullup resistors, but your device may not have them.
+	To check your light sensor, look for "PU" printed on it, or check datasheet.
+*/
 
 `make menuconfig` can be used to set the I2C GPIOs and TSL2561 device I2C address.
 
