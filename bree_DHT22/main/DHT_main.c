@@ -9,6 +9,7 @@ For: DHT22 Temp & Humidity Sensor + LED
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/FreeRTOSConfig.h"
 #include "esp_system.h"
 #include "rom/ets_sys.h"
 #include "nvs_flash.h"
@@ -17,6 +18,9 @@ For: DHT22 Temp & Humidity Sensor + LED
 #include "DHT22.h"
 
 //#define BLINK_GPIO CONFIG_BLINK_GPIO  // Bree: These are for setting via menuconfig but we don't need
+
+// Damon: Create a task handle that's very visible to allow sensor.c to view it in the most unsafe manner possible
+TaskHandle_t handleDHT = NULL;
 
 // Bree: define DHT22 task function
 void DHT_task(void *pvParameter)
@@ -30,6 +34,8 @@ void DHT_task(void *pvParameter)
 		int ret = readDHT();
 		
 		errorHandler(ret);
+		
+		//float gethu = getHumidity();
 		
 		printf( "Humidity:        %.1f\n", getHumidity() );
 		printf( "Temperature (C): %.1f\n", getTemperature() );
@@ -77,9 +83,8 @@ void app_main()
 	// DHT22 Read task code (from original DHT22 program)
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
-	xTaskCreate( &DHT_task, "DHT_task", 2048, NULL, 5, NULL );
+	xTaskCreate( &DHT_task, "DHT_task", 2048, NULL, 5, &handleDHT );
 	
 	// LED Blink task code (from original LED Blink program)
 	xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
 }
-
