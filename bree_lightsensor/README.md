@@ -1,10 +1,9 @@
 //************************************************************************************
-	By:				Bree Abernathy
-	For:			TSL2561 Light-to-Digital sensor, for use with ESP32 with ESP-IDF
-	
-	Adapted from:	David Antliff
-					( see https://github.com/DavidAntliff/esp32-tsl2561-example.git )
+By:	Bree Abernathy
+For:	TSL2561 Light-to-Digital sensor, for use with ESP32 with ESP-IDF
 
+Adapted from:	David Antliff
+( see https://github.com/DavidAntliff/esp32-tsl2561-example.git )
 //************************************************************************************
 # esp32-tsl2561-example
 
