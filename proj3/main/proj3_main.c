@@ -22,11 +22,15 @@ public:
     virtual void read() = 0;
     virtual void close()
     {
-    public:
-        int AllSensorData[10] = [ 0,0,0,0,0,0,0,0,0,0]
-           // [DHT_temp, DHT Humidity, PhotoSensor, ] 
+        vTaskSuspend 
     }
-    virtual void ctl() = 0;
+
+    virtual void ioctl()
+    {
+
+        //gpio
+        //period
+    }
 };
 
 /*
@@ -48,7 +52,7 @@ class sensorname : public Sensor
     void close() {
 
     }
-    void ctl() {
+    void ioctl() {
 
     }
 };
@@ -59,7 +63,7 @@ class sensorname : public Sensor
 
 
 
-class DHT11 : public Sensor
+class DHT : public Sensor
 {
  public:
      int DHT_temp = 0;
@@ -78,34 +82,45 @@ class DHT11 : public Sensor
         DHT_temp = getTemp();
         DHT_humidity = getHumidity();
     }
-    void close()
+    void close();
+    void ioctl()
     {
-
-    }
-    void ctl()
-    {
-
+        //gpio
+        //period
     }
 };
 
+class photo : public Sensor
+{
 
+
+};
 
 void DHT_Task(void *pvParameter)
 {
-    DHT11 d;
+    DHT d;
     d.open();
     d.read();
     d.close();
 }
 
+/* Definition of Sensing task
 void Sensing_Task(void *pvParameter)
 {
 
 }
+*/
 
 void Manager_Task(void *pvParameter)
 {
+    //Take data from FIFO buffer
+    //Compute exponential moving average for each type of data
+    // 
+}
 
+void Communication_Task(void *pvParameter)
+{
+    //Send stuff to MQTT Server
 }
 
 void app_main
