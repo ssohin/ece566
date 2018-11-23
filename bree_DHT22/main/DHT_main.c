@@ -21,11 +21,14 @@ For: DHT22 Temp & Humidity Sensor + LED
 
 //Damon: Create a task handle that's very visible to allow sensor.c to view it in the most unsafe manner possible
 TaskHandle_t handleDHT = NULL;
+int temp_read();
 
 // Bree: define DHT22 task function
 void DHT_task(void *pvParameter)
 {
-	
+	while(1){
+		temp_read();
+	}
 }
 
 //Bree: define LED Blink task function
@@ -51,26 +54,11 @@ void blink_task(void *pvParameter)
     }
 }
 
-void temp_open()
-{
-	
-	// DHT22 Read task code (from original DHT22 program)
-	nvs_flash_init();
-	vTaskDelay( 1000 / portTICK_RATE_MS );
-	xTaskCreate( &temp_read, "temp_read", 2048, NULL, 5, &handleDHT );
-	//Damon: Suspends handleDHT so it can be resumed when sensor wants to read from it
-	devTable[0] = {"/temp",temp_read(),temp_write()}
-	
-	
-	// LED Blink task code (from original LED Blink program)
-	//xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
-}
-
 int temp_read(){
 	setDHTgpio( 23 );    // Bree: 23 is what I chose to set my default gpio for DHT
 	printf( "Starting DHT Task\n\n");
 
-	while(1) {
+	
 	
 		printf("=== Reading DHT22 - Temperature (C) + Humidity Sensor ===\n\n" );
 		int ret = readDHT();
@@ -92,11 +80,32 @@ int temp_read(){
 		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
 		vTaskDelay( 10000 / portTICK_RATE_MS );
-	}
-	
+
+		return getTemperature();
 }
 
 int temp_write(){
 	int ret = (int)getTemperature();
 	return ret;
 }
+
+void temp_open()
+{
+	
+	// DHT22 Read task code (from original DHT22 program)
+	nvs_flash_init();
+	vTaskDelay( 1000 / portTICK_RATE_MS );
+	xTaskCreate( &DHT_task, "DHTTask", 2048, NULL, 5, &handleDHT );
+	//Damon: Suspends handleDHT so it can be resumed when sensor wants to read from it
+	struct row tempRow;
+	tempRow.read = temp_read;
+	tempRow.name = 1; //1 for temperature
+
+	tempRow.write = temp_write;
+	devTable[0] = tempRow;
+	
+	
+	// LED Blink task code (from original LED Blink program)
+	//xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
+}
+

@@ -1,6 +1,6 @@
 struct row{
 
-	char* name[16];
+	int name; //1 for temperature, 
 	int (*read)();
 	int (*write)();
 	
