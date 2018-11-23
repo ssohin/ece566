@@ -15,6 +15,7 @@ For: DHT22 Temp & Humidity Sensor + LED
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 #include "DHT22.h"
+#include "fileTable.h"
 
 //#define BLINK_GPIO CONFIG_BLINK_GPIO  // Bree: These are for setting via menuconfig but we don't need
 
@@ -24,6 +25,48 @@ TaskHandle_t handleDHT = NULL;
 // Bree: define DHT22 task function
 void DHT_task(void *pvParameter)
 {
+	
+}
+
+//Bree: define LED Blink task function
+void blink_task(void *pvParameter)
+{
+    /* Configure the IOMUX register for pad BLINK_GPIO (some pads are
+       muxed to GPIO on reset already, but some default to other
+       functions and need to be switched to GPIO. Consult the
+       Technical Reference for a list of pads and their default
+       functions.)
+    */
+    //gpio_pad_select_gpio(LEDgpio);
+	setLEDgpio( 2 );
+    /* Set the GPIO as a push/pull output */
+    gpio_set_direction(2, GPIO_MODE_OUTPUT);
+    while(1) {
+        /* Blink off (output low) */
+        gpio_set_level(2, 0);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        /* Blink on (output high) */
+        gpio_set_level(2, 1);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void temp_open()
+{
+	
+	// DHT22 Read task code (from original DHT22 program)
+	nvs_flash_init();
+	vTaskDelay( 1000 / portTICK_RATE_MS );
+	xTaskCreate( &temp_read, "temp_read", 2048, NULL, 5, &handleDHT );
+	//Damon: Suspends handleDHT so it can be resumed when sensor wants to read from it
+	devTable[0] = {"/temp",temp_read(),temp_write()}
+	
+	
+	// LED Blink task code (from original LED Blink program)
+	//xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
+}
+
+int temp_read(){
 	setDHTgpio( 23 );    // Bree: 23 is what I chose to set my default gpio for DHT
 	printf( "Starting DHT Task\n\n");
 
@@ -50,42 +93,10 @@ void DHT_task(void *pvParameter)
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
 		vTaskDelay( 10000 / portTICK_RATE_MS );
 	}
-}
-
-//Bree: define LED Blink task function
-void blink_task(void *pvParameter)
-{
-    /* Configure the IOMUX register for pad BLINK_GPIO (some pads are
-       muxed to GPIO on reset already, but some default to other
-       functions and need to be switched to GPIO. Consult the
-       Technical Reference for a list of pads and their default
-       functions.)
-    */
-    //gpio_pad_select_gpio(LEDgpio);
-	setLEDgpio( 2 );
-    /* Set the GPIO as a push/pull output */
-    gpio_set_direction(2, GPIO_MODE_OUTPUT);
-    while(1) {
-        /* Blink off (output low) */
-        gpio_set_level(2, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        /* Blink on (output high) */
-        gpio_set_level(2, 1);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
-
-void DHT_app_main()
-{
 	
-	// DHT22 Read task code (from original DHT22 program)
-	nvs_flash_init();
-	vTaskDelay( 1000 / portTICK_RATE_MS );
-	xTaskCreate( &DHT_task, "DHT_task", 2048, NULL, 5, &handleDHT );
-	//Damon: Suspends handleDHT so it can be resumed when sensor wants to read from it
-	vTaskSuspend(handleDHT);
-	
-	// LED Blink task code (from original LED Blink program)
-	xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
 }
 
+int temp_write(){
+	int ret = (int)getTemperature();
+	return ret;
+}

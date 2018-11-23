@@ -20,5 +20,9 @@ int 	readDHT();
 float 	getHumidity();
 float 	getTemperature();
 int 	getSignalLevel( int usTimeOut, bool state );
+float temps[10];
+int usedtemps;
+int tempRead;
+int tempOpen;
 
 #endif
