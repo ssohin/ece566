@@ -1,6 +1,6 @@
 struct row{
 
-	int name; //1 for temperature, 
+	int name;
 	int (*read)();
 	int (*write)();
 	

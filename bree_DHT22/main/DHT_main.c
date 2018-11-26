@@ -21,13 +21,22 @@ For: DHT22 Temp & Humidity Sensor + LED
 
 //Damon: Create a task handle that's very visible to allow sensor.c to view it in the most unsafe manner possible
 TaskHandle_t handleDHT = NULL;
+TaskHandle_t handleHumid = NULL;
 int temp_read();
+int humid_read();
 
 // Bree: define DHT22 task function
-void DHT_task(void *pvParameter)
+void temp_task(void *pvParameter)
 {
 	while(1){
 		temp_read();
+	}
+}
+
+void humid_task(void *pvParameter)
+{
+	while(1){
+		humid_read();
 	}
 }
 
@@ -56,23 +65,24 @@ void blink_task(void *pvParameter)
 
 int temp_read(){
 	setDHTgpio( 23 );    // Bree: 23 is what I chose to set my default gpio for DHT
-	printf( "Starting DHT Task\n\n");
+	//printf( "Starting DHT Task\n\n");
 
 	
 	
-		printf("=== Reading DHT22 - Temperature (C) + Humidity Sensor ===\n\n" );
+		//printf("=== Reading DHT22 - Temperature (C) + Humidity Sensor ===\n\n" );
 		int ret = readDHT();
 		
 		errorHandler(ret);
 		
-		printf( "Humidity:        %.1f\n", getHumidity() );
-		printf( "Temperature (C): %.1f\n", getTemperature() );
+		//taking these two printfs out 
+		//printf( "Humidity:        %.1f\n", getHumidity() );
+		//printf( "Temperature (C): %.1f\n", getTemperature() );
 		
-		printf("\nCounting down to next reading...\n");
+		//printf("\nCounting down to next reading...\n");
 		
 		// Bree: I had a for loop here but it wasn't working correctly
 		// Bree: this count down isn't actually counting obviously, and doesn't need to be in here
-		printf("10...\n9...\n8...\n7...\n6...\n5...\n4...\n3...\n2...\n1...\n");
+		//printf("10...\n9...\n8...\n7...\n6...\n5...\n4...\n3...\n2...\n1...\n");
 		
 		
 		// -- wait at least 10 sec before reading again ------------
@@ -80,12 +90,14 @@ int temp_read(){
 		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
 		vTaskDelay( 10000 / portTICK_RATE_MS );
-
+		printf("\n| Temp Read | Temperature Task has this name: %d",devTable[0].name);
 		return getTemperature();
 }
 
 int temp_write(){
 	int ret = (int)getTemperature();
+	printf("\n| Temp_Write | Temperature (C): %.1f\n", getTemperature() ); //for testing purposes, to prove that this function is being ran!
+	printf("\nTemperature Task has this name on the Table: %d\n", devTable[0].name);
 	return ret;
 }
 
@@ -95,8 +107,8 @@ void temp_open()
 	// DHT22 Read task code (from original DHT22 program)
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
-	xTaskCreate( &DHT_task, "DHTTask", 2048, NULL, 5, &handleDHT );
-	//Damon: Suspends handleDHT so it can be resumed when sensor wants to read from it
+	xTaskCreate( &temp_task, "TempTask", 2048, NULL, 5, &handleDHT );
+	//Damon: Creates a "row" template using the temperature task, then puts it onto the table in a constant location
 	struct row tempRow;
 	tempRow.read = temp_read;
 	tempRow.name = 1; //1 for temperature
@@ -109,3 +121,56 @@ void temp_open()
 	//xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
 }
 
+int humid_read(){
+	setDHTgpio( 23 );    // Bree: 23 is what I chose to set my default gpio for DHT
+	//printf( "Starting DHT Task\n\n");
+
+	
+	
+		//printf("=== Reading DHT22 - Temperature (C) + Humidity Sensor ===\n\n" );
+		int ret = readDHT();
+		
+		errorHandler(ret);
+		
+		//taking these two printfs out 
+		//printf( "Humidity:        %.1f\n", getHumidity() );
+		//printf( "Temperature (C): %.1f\n", getTemperature() );
+		
+		//printf("\nCounting down to next reading...\n");
+		
+		// Bree: I had a for loop here but it wasn't working correctly
+		// Bree: this count down isn't actually counting obviously, and doesn't need to be in here
+		//printf("10...\n9...\n8...\n7...\n6...\n5...\n4...\n3...\n2...\n1...\n");
+		
+		
+		// -- wait at least 10 sec before reading again ------------
+		// The interval of whole process must be beyond 10 seconds !! 
+		
+		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
+		vTaskDelay( 10000 / portTICK_RATE_MS );
+		printf("\n| Humid_Read | Humidity Task has this name: %d",devTable[1].name);
+		return getHumidity();
+}
+
+int humid_write(){
+	int ret = (int)getTemperature();
+	printf("\n| Humid_Write | Humidity: %.1f\n", getHumidity()); //for testing purposes, to prove that this function is being ran!
+	printf("\nHumidity Task has this name: %d\n" ,devTable[1].name);
+	return ret;
+}
+
+void humid_open()
+{
+	// DHT22 Read task code (from original DHT22 program)
+	nvs_flash_init();
+	vTaskDelay( 1000 / portTICK_RATE_MS );
+	//Damon: These task definitions mean it only looks at humidity side of things
+	xTaskCreate( &humid_task, "HumidTask", 2048, NULL, 5, &handleHumid );
+	//Damon: Creates a "row" template using the temperature task, then puts it onto the table in a constant location
+	struct row humidRow;
+	humidRow.read = humid_read;
+	humidRow.name = 2; //2 for humidity
+
+	humidRow.write = humid_write;
+	devTable[1] = humidRow; //row value 1 is humid
+}
