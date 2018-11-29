@@ -6,7 +6,7 @@
 					( see https://github.com/DavidAntliff/esp32-tsl2561-example.git )
 					
 					
-//  BREE NOTES:		I ran ESP32's I2C example prgrogram first to configure / choose 
+    BREE NOTES:		I ran ESP32's I2C example prgrogram first to configure / choose 
 					which of ESP32's GPIO pins to set as SDA (data) master and SCL (clock) master.
 					For my board, the best choice was GPIO 18 (SDA) ad GPIO 19(SCL) but your
 					board may very well be different so check the pinout in your datasheet!
@@ -17,8 +17,9 @@
 					to the Master SDA and SCL pins.
 					
 					Be sure to only connect the sensor's VCC to 3.3V! 5V will damage it.
-/********************************************************************************************************
-/*
+********************************************************************************************************/
+
+/**
  * MIT License
  *
  * Copyright (c) 2017 David Antliff
