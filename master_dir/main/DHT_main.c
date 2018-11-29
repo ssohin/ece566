@@ -16,8 +16,10 @@ For: DHT22 Temp & Humidity Sensor + LED
 #include "sdkconfig.h"
 
 #include "DHT22.h"
-#include "fileTable.h"
 #include "qExample.c"
+
+#ifndef DHT_MAIN
+#define DHT_MAIN
 
 //#define BLINK_GPIO CONFIG_BLINK_GPIO  // Bree: These are for setting via menuconfig but we don't need
 
@@ -92,17 +94,16 @@ int temp_read(){
 		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
 		vTaskDelay( 10000 / portTICK_RATE_MS );
-		printf("\n| Temp Read | Temperature Task has this name: %d",devTable[0].name);
 		return getTemperature();
 }
 
 int temp_write(){
 	int ret = (int)getTemperature();
-	printf("\n| Temp_Write | Temperature (C): %.1f\n", getTemperature() ); //for testing purposes, to prove that this function is being ran!
-	printf("\nTemperature Task has this name on the Table: %d\n", devTable[0].name);
+	ret = ret*10; //the "name" for temperature is put into the ones' place, so value needs to be multiplied by 10 to make room
+	ret = ret+0; //name for temperature is 0
+	//printf("\n| Temp_Write | Temperature (C): %.1f\n", getTemperature() ); //for testing purposes, to prove that this function is being ran!
 	pushQ(&ret);
 	//printf("\nCalled Push");
-	popQ();
 	//printf("\nCalled Pop");
 	return ret;
 }
@@ -114,13 +115,6 @@ void temp_open()
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
 	xTaskCreate( &temp_task, "TempTask", 2048, NULL, 5, &handleDHT );
-	//Damon: Creates a "row" template using the temperature task, then puts it onto the table in a constant location
-	struct row tempRow;
-	tempRow.read = temp_read;
-	tempRow.name = 1; //1 for temperature
-
-	tempRow.write = temp_write;
-	devTable[0] = tempRow;
 	
 	
 	// LED Blink task code (from original LED Blink program)
@@ -154,14 +148,16 @@ int humid_read(){
 		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
 		vTaskDelay( 10000 / portTICK_RATE_MS );
-		printf("\n| Humid_Read | Humidity Task has this name: %d",devTable[1].name);
+		//printf("\n| Humid_Read | Humidity Task has this name: %d",devTable[1].name);
 		return getHumidity();
 }
 
 int humid_write(){
-	int ret = (int)getTemperature();
-	printf("\n| Humid_Write | Humidity: %.1f\n", getHumidity()); //for testing purposes, to prove that this function is being ran!
-	printf("\nHumidity Task has this name: %d\n" ,devTable[1].name);
+	int ret = (int)getHumidity();
+	ret = ret*10; //the "name" for humidity is put into the ones place of the read value
+	ret += 1; //humidity = 1
+	//printf("\n| Humid_Write | Humidity: %.1f\n", getHumidity()); //for testing purposes, to prove that this function is being ran!
+	pushQ(&ret); //puts humidity value onto queue
 	return ret;
 }
 
@@ -172,11 +168,14 @@ void humid_open()
 	vTaskDelay( 1000 / portTICK_RATE_MS );
 	//Damon: These task definitions mean it only looks at humidity side of things
 	xTaskCreate( &humid_task, "HumidTask", 2048, NULL, 5, &handleHumid );
-	//Damon: Creates a "row" template using the temperature task, then puts it onto the table in a constant location
-	struct row humidRow;
-	humidRow.read = humid_read;
-	humidRow.name = 2; //2 for humidity
-
-	humidRow.write = humid_write;
-	devTable[1] = humidRow; //row value 1 is humid
 }
+
+void humid_close(){
+	vTaskSuspend(&humid_task);
+}
+
+void temp_close(){
+	vTaskSuspend(&temp_task);
+}
+
+#endif

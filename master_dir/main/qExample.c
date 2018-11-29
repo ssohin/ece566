@@ -72,7 +72,7 @@ void producer_task(void *pvParameter){
 
 void pushQ(int* input){
 	xQueueSend(q,input,(TickType_t)0);
-	printf("\nValue sent to queue: %d\n",*input);
+	//printf("\nValue sent to queue: %d\n",*input);
 	vTaskDelay(1000/portTICK_PERIOD_MS);
 }
 
@@ -98,11 +98,11 @@ void q_app_main()
 
         //xTaskCreate(&producer_task,"producer_task",2048,NULL,5,NULL);
 
-        printf("producer task  started\n");
+        //printf("producer task  started\n");
 
         //xTaskCreate(&consumer_task,"consumer_task",2048,NULL,5,NULL);
 
-        printf("consumer task  started\n");
+        //printf("consumer task  started\n");
 
     }else{
 

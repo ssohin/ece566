@@ -56,9 +56,12 @@
 #include "esp_log.h"
 #include "sdkconfig.h"
 
-#include "fileTable.h"
 #include "../components/esp32-smbus/include/smbus.h"
 #include "../components/esp32-tsl2561/include/tsl2561.h"
+#include "qExample.c"
+
+#ifndef LIGHT_MAIN
+#define LIGHT_MAIN
 
 #define TAG "app"
 
@@ -68,6 +71,8 @@
 #define I2C_MASTER_FREQ_HZ       100000
 #define I2C_MASTER_SDA_IO        CONFIG_I2C_MASTER_SDA
 #define I2C_MASTER_SCL_IO        CONFIG_I2C_MASTER_SCL
+
+
 
 void tsl2561_output();
 int lightValueRead = 0;
@@ -89,7 +94,7 @@ static void i2c_master_init(void)
 }
 
 int light_read(){
-	printf("\n |Light Read| Visible Light Value: %d\n", lightValueRead); //global variables are bad practice
+	//printf("\n |Light Read| Visible Light Value: %d\n", lightValueRead); //global variables are bad practice
 	return lightValueRead;
 }
 
@@ -130,21 +135,25 @@ void tsl2561_task(void * pvParameter)
 }
 
 int light_write(){
-	printf("\n |Light Write| Visible Light Value: %d\n", lightValueRead); //global variables are still bad practice
+	int send;
+	send = lightValueRead;
+	send = send*10;//the "name" for light is put into the ones' place, so need to multiply the read value by 10 to make room
+	send = send+2; //the name of light is 2 
+	pushQ(&send);
+	//printf("\n |Light Write| Visible Light Value: %d\n", lightValueRead); //global variables are still bad practice
 	return lightValueRead;
 }
 
 void light_open()
 {
     xTaskCreate(&tsl2561_task, "tsl2561_task", 2048, NULL, 5, NULL);
-    struct row lightRow;
-    //lightRow.read = tsl2561_task;
-    //lightRow.write = tsl2561_output;
-    lightRow.read = light_read;
-    lightRow.name = 3; //3 for lights
-    lightRow.write = light_write;
-    devTable[2] = lightRow;
     // I2C/SMBus Test application
     //extern void test_smbus_task(void * pvParameter);
     //xTaskCreate(&test_smbus_task, "test_smbus_task", 2048, NULL, 5, NULL);
 }
+
+void light_close(){
+	vTaskSuspend(&tsl2561_task);
+}
+
+#endif
