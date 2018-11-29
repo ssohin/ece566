@@ -14,8 +14,10 @@ For: DHT22 Temp & Humidity Sensor + LED
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 #include "sdkconfig.h"
+
 #include "DHT22.h"
 #include "fileTable.h"
+#include "qExample.c"
 
 //#define BLINK_GPIO CONFIG_BLINK_GPIO  // Bree: These are for setting via menuconfig but we don't need
 
@@ -98,6 +100,10 @@ int temp_write(){
 	int ret = (int)getTemperature();
 	printf("\n| Temp_Write | Temperature (C): %.1f\n", getTemperature() ); //for testing purposes, to prove that this function is being ran!
 	printf("\nTemperature Task has this name on the Table: %d\n", devTable[0].name);
+	pushQ(&ret);
+	//printf("\nCalled Push");
+	popQ();
+	//printf("\nCalled Pop");
 	return ret;
 }
 

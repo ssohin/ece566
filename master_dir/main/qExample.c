@@ -8,12 +8,13 @@
 
 #include "freertos/queue.h"
 
-
+#ifndef QUEUE_MAIN
+#define QUEUE_MAIN
 
 
 
 QueueHandle_t  q=NULL;
-
+/*
 void consumer_task(void *pvParameter)
 
 {
@@ -39,9 +40,9 @@ void consumer_task(void *pvParameter)
     }
 
 }
+*/
 
-
-
+/*
 void producer_task(void *pvParameter){
 
     unsigned long counter=1;
@@ -67,7 +68,20 @@ void producer_task(void *pvParameter){
     }
 
 }
+*/
 
+void pushQ(int* input){
+	xQueueSend(q,input,(TickType_t)0);
+	printf("\nValue sent to queue: %d\n",*input);
+	vTaskDelay(1000/portTICK_PERIOD_MS);
+}
+
+int popQ(){
+	unsigned long storage;
+	xQueueReceive(q,&storage,(TickType_t )(1000/portTICK_PERIOD_MS));
+	printf("\nValue read off queue: %lu \n",storage);
+	return (int)storage;
+}
 
 
 void q_app_main()
@@ -82,11 +96,11 @@ void q_app_main()
 
         vTaskDelay(1000/portTICK_PERIOD_MS); //wait for a second
 
-        xTaskCreate(&producer_task,"producer_task",2048,NULL,5,NULL);
+        //xTaskCreate(&producer_task,"producer_task",2048,NULL,5,NULL);
 
         printf("producer task  started\n");
 
-        xTaskCreate(&consumer_task,"consumer_task",2048,NULL,5,NULL);
+        //xTaskCreate(&consumer_task,"consumer_task",2048,NULL,5,NULL);
 
         printf("consumer task  started\n");
 
@@ -97,3 +111,4 @@ void q_app_main()
     }    
 
 }
+#endif
