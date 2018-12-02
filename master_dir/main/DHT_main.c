@@ -17,6 +17,7 @@ For: DHT22 Temp & Humidity Sensor + LED
 
 #include "DHT22.h"
 #include "qExample.c"
+#include "fileTable.h"
 
 #ifndef DHT_MAIN
 #define DHT_MAIN
@@ -29,18 +30,39 @@ TaskHandle_t handleHumid = NULL;
 int temp_read();
 int humid_read();
 
+int tempValue = 0; //read updates these values, write puts them onto the queue
+int humidValue = 0;
+
 // Bree: define DHT22 task function
 void temp_task(void *pvParameter)
 {
+		//define values used in vTaskDelayUntil() to make task periodic
+		TickType_t xLastWakeTime;
+		//portTICK_RATE_MS converts from ms to ticks, allowing me to say
+		//"10000 milliseconds" and not care about my board's tick rate
+		const TickType_t xFrequency = 10000*portTICK_RATE_MS;
+
 	while(1){
-		temp_read();
+		xLastWakeTime = xTaskGetTickCount();
+
+		temp_read(); //temp_task periodically updates the value
+		printf("\n\n| TEMP TASK | Before delay\n\n");
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+		printf("\n\n| TEMP TASK | After delay\n\n");
 	}
 }
 
 void humid_task(void *pvParameter)
 {
+	//see temp_task for explanation of periodic task control
+	TickType_t hLastWakeTime;
+	const TickType_t hFrequency = 10000*portTICK_RATE_MS;
 	while(1){
+		hLastWakeTime = xTaskGetTickCount();
 		humid_read();
+		printf("\n\n| HUMID TASK | Before delay\n\n");
+		vTaskDelayUntil(&hLastWakeTime, hFrequency);
+		printf("\n\n| HUMID TASK | After delay\n\n");
 	}
 }
 
@@ -69,11 +91,7 @@ void blink_task(void *pvParameter)
 
 int temp_read(){
 	setDHTgpio( 23 );    // Bree: 23 is what I chose to set my default gpio for DHT
-	//printf( "Starting DHT Task\n\n");
-
 	
-	
-		//printf("=== Reading DHT22 - Temperature (C) + Humidity Sensor ===\n\n" );
 		int ret = readDHT();
 		
 		errorHandler(ret);
@@ -82,23 +100,17 @@ int temp_read(){
 		//printf( "Humidity:        %.1f\n", getHumidity() );
 		//printf( "Temperature (C): %.1f\n", getTemperature() );
 		
-		//printf("\nCounting down to next reading...\n");
-		
-		// Bree: I had a for loop here but it wasn't working correctly
-		// Bree: this count down isn't actually counting obviously, and doesn't need to be in here
-		//printf("10...\n9...\n8...\n7...\n6...\n5...\n4...\n3...\n2...\n1...\n");
 		
 		
-		// -- wait at least 10 sec before reading again ------------
-		// The interval of whole process must be beyond 10 seconds !! 
 		
-		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
-		vTaskDelay( 10000 / portTICK_RATE_MS );
+		
+
+		tempValue = getTemperature();
 		return getTemperature();
 }
 
 int temp_write(){
-	int ret = (int)getTemperature();
+	int ret = tempValue;
 	ret = ret*10; //the "name" for temperature is put into the ones' place, so value needs to be multiplied by 10 to make room
 	ret = ret+0; //name for temperature is 0
 	//printf("\n| Temp_Write | Temperature (C): %.1f\n", getTemperature() ); //for testing purposes, to prove that this function is being ran!
@@ -115,7 +127,11 @@ void temp_open()
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
 	xTaskCreate( &temp_task, "TempTask", 2048, NULL, 5, &handleDHT );
-	
+	struct row tempRow;
+	tempRow.read = temp_read;
+	tempRow.name = 1;
+	tempRow.write = temp_write;
+	devTable[rowsInUse++] = tempRow;
 	
 	// LED Blink task code (from original LED Blink program)
 	//xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
@@ -124,7 +140,7 @@ void temp_open()
 int humid_read(){
 	setDHTgpio( 23 );    // Bree: 23 is what I chose to set my default gpio for DHT
 	//printf( "Starting DHT Task\n\n");
-
+		
 	
 	
 		//printf("=== Reading DHT22 - Temperature (C) + Humidity Sensor ===\n\n" );
@@ -147,13 +163,15 @@ int humid_read(){
 		// The interval of whole process must be beyond 10 seconds !! 
 		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
-		vTaskDelay( 10000 / portTICK_RATE_MS );
 		//printf("\n| Humid_Read | Humidity Task has this name: %d",devTable[1].name);
 		return getHumidity();
 }
 
 int humid_write(){
-	int ret = (int)getHumidity();
+
+     	// Initialise the xLastWakeTime variable with the current time.
+	
+     	int ret = (int)getHumidity();
 	ret = ret*10; //the "name" for humidity is put into the ones place of the read value
 	ret += 1; //humidity = 1
 	//printf("\n| Humid_Write | Humidity: %.1f\n", getHumidity()); //for testing purposes, to prove that this function is being ran!
@@ -168,6 +186,11 @@ void humid_open()
 	vTaskDelay( 1000 / portTICK_RATE_MS );
 	//Damon: These task definitions mean it only looks at humidity side of things
 	xTaskCreate( &humid_task, "HumidTask", 2048, NULL, 5, &handleHumid );
+	struct row humidRow;
+	humidRow.read = humid_read;
+	humidRow.write = humid_write;
+	humidRow.name = 2;
+	devTable[rowsInUse++] = humidRow;
 }
 
 void humid_close(){

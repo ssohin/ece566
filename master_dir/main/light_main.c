@@ -59,11 +59,12 @@
 #include "../components/esp32-smbus/include/smbus.h"
 #include "../components/esp32-tsl2561/include/tsl2561.h"
 #include "qExample.c"
+#include "fileTable.h"
 
 #ifndef LIGHT_MAIN
 #define LIGHT_MAIN
 
-#define TAG "app"
+#define TAG *"app"
 
 #define I2C_MASTER_NUM           I2C_NUM_0
 #define I2C_MASTER_TX_BUF_LEN    0                     // disabled
@@ -100,6 +101,11 @@ int light_read(){
 
 void tsl2561_task(void * pvParameter)
 {
+    //Every 10 seconds, update the read value
+    TickType_t lLastWakeTime;
+    const TickType_t lFrequency = 10000*portTICK_RATE_MS;
+
+
     // Set up I2C
     i2c_master_init();
     i2c_port_t i2c_num = I2C_MASTER_NUM;
@@ -120,6 +126,8 @@ void tsl2561_task(void * pvParameter)
 
     while (1)
     {
+	lLastWakeTime = xTaskGetTickCount();
+
         tsl2561_visible_t visible = 0;
         tsl2561_infrared_t infrared = 0;
         tsl2561_read(tsl2561_info, &visible, &infrared);
@@ -129,8 +137,9 @@ void tsl2561_task(void * pvParameter)
         printf("Visible:       %d\n", visible);
         printf("Lux:           %d\n", tsl2561_compute_lux(tsl2561_info, visible, infrared));*/
 	light_read();
-        vTaskDelay(2000 / portTICK_RATE_MS);
-	    
+	printf("\n\n| LIGHT TASK | Before delay\n\n");	
+	vTaskDelayUntil(&lLastWakeTime,lFrequency); 
+	printf("\n\n| LIGHT TASK | After delay\n\n");
     }
 }
 
@@ -139,6 +148,7 @@ int light_write(){
 	send = lightValueRead;
 	send = send*10;//the "name" for light is put into the ones' place, so need to multiply the read value by 10 to make room
 	send = send+2; //the name of light is 2 
+	printf("| LIGHT WRITE Value sent: %d",send);
 	pushQ(&send);
 	//printf("\n |Light Write| Visible Light Value: %d\n", lightValueRead); //global variables are still bad practice
 	return lightValueRead;
@@ -147,6 +157,11 @@ int light_write(){
 void light_open()
 {
     xTaskCreate(&tsl2561_task, "tsl2561_task", 2048, NULL, 5, NULL);
+	struct row lightRow;
+	lightRow.read = light_read;
+	lightRow.write = light_write;
+	lightRow.name = 2;
+	devTable[rowsInUse++] = lightRow;
     // I2C/SMBus Test application
     //extern void test_smbus_task(void * pvParameter);
     //xTaskCreate(&test_smbus_task, "test_smbus_task", 2048, NULL, 5, NULL);

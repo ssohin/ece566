@@ -2,6 +2,8 @@
 #include "light_main.c"
 #include "qExample.c"
 #include "sensor.c"
+#include "fileTable.h"
+
 
 TaskHandle_t handleManage = NULL;
 void manage_task();
@@ -16,9 +18,9 @@ void app_main(){
 	light_open();
 	q_app_main();
 	sense_open();
-	tempAvg = 0;
-	humidAvg = 0;
-	lightAvg = 0;
+	tempAvg = temp_write()/10;
+	humidAvg = humid_write()/10;
+	lightAvg = light_write()/10;
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
 	xTaskCreate( &manage_task, "ManageTask", 2048, NULL, 5, &handleManage );
@@ -54,13 +56,22 @@ void updateLightAvg(int toAdd){
 	printf("\nWeighted Light Average: %d\n",lightAvg);
 }
 
+void noUpdates(){
+	printf("\nNo values found on queue this period.\n");
+}
+
 void manage_task(){
 	int name;
+	int tableIndex;
+
+	TickType_t xLastWakeTime;
+	//every ten seconds, read off from the queue
+	const TickType_t xFrequency = 10000*portTICK_RATE_MS;
 	while(1){
 	//to test that the functions are working properly
+	xLastWakeTime = xTaskGetTickCount();
 	
-	vTaskDelay(2000/portTICK_RATE_MS);	
-	
+	for(tableIndex = 0; tableIndex < rowsInUse; tableIndex++){		
 	sort = popQ();
 	name = sort%10; //name is stored in ones' place of sort, so this works I think
 
@@ -75,8 +86,13 @@ void manage_task(){
 			updateLightAvg(sort);
 			break;
 		default:
-			updateTempAvg(sort);
+			noUpdates();
 			break;
-		}
-	}
-}
+
+			}//end switch case
+		
+		vTaskDelayUntil(&xLastWakeTime,xFrequency);
+		
+		}//end tableIndexing
+	}//end whileLoop for manager task
+}//end manager task
