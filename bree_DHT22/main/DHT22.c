@@ -13,7 +13,7 @@
 	software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 	CONDITIONS OF ANY KIND, either express or implied.
 
-	PLEASE KEEP THIS CODE IN LESS THAN 0XFF LINES. EACH LINE MAY CONTAIN ONE BUG !!!
+	PLEASE KEEP THIS CODE IN LESS THAN 0XFF LINES. EACH LINE MAY CONTAIN ONE BUG !!! <- This comment speaks to me on an emotional level
 
 ---------------------------------------------------------------------------------*/
 

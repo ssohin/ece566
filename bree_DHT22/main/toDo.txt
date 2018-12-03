@@ -1,0 +1,9 @@
+[X] Implement vTaskDelayUntil() to make the working sensors periodic.
+
+[ ] Get dust sensor working
+
+[ ] MQTT stuff
+
+[ ] Output to LEDs from Manager
+
+[ ] Change Manager to require a password on startup
