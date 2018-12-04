@@ -18,6 +18,7 @@ void app_main(){
 	light_open();
 	q_app_main();
 	sense_open();
+	comms_open();
 	tempAvg = temp_write()/10;
 	humidAvg = humid_write()/10;
 	lightAvg = light_write()/10;
@@ -33,6 +34,7 @@ void updateTempAvg(int toAdd){
 	tempAvg += toAdd;
 	tempAvg = tempAvg/10;
 	printf("\nWeighted Temperature Average: %d\n",tempAvg);
+	toComm = tempAvg;
 }
 
 void updateHumidAvg(int toAdd){

@@ -32,6 +32,8 @@
 #include "mbedtls/error.h"
 #include "mbedtls/certs.h"
 
+#include "fileTable.h"
+
 /* The examples use simple WiFi configuration that you can set via
    'make menuconfig'.
 
@@ -145,6 +147,8 @@ void mqtt_task(void *pvParameters)
 		goto exit;
 		}
 		printf("\n\nError I thinkn't: %d\n\n",ret);		
+		
+		
 		char msgbuf[200];
 		MQTTMessage message;
 		message.qos = QOS0;
@@ -152,8 +156,64 @@ void mqtt_task(void *pvParameters)
         message.dup = false;
         message.payload = (void*)msgbuf;
         message.payloadlen = strlen(msgbuf)+1;
-	
 		
+		if(toComm != -1234){
+
+	switch(toComm%10){
+		case 0:
+			//publish to iupui/group2/temperature
+			printf("\n\nPublish to temp\n\n");
+			sprintf(msgbuf, "{\"temperature\":%d,}", toComm);
+			printf("\n\n%s\n\n",msgbuf);	
+			ret = MQTTPublish(&client, "iupui/group2/", &message);
+			toComm = -1234;
+			if (ret != SUCCESS) {
+					printf("MQTTPublish NOT: %d", ret);
+			}else{
+				printf("MQTTPublish wait I think it did: %d",ret);
+			}	
+		 
+			break;
+		case 1:
+			//publish to iupui/group2/humidity
+			printf("\n\nPublish to humidity\n\n");
+			sprintf(msgbuf, "{\"humidity\":%d,}", toComm);
+			printf("\n\n%s\n\n",msgbuf);	
+			ret = MQTTPublish(&client, "iupui/group2/", &message);
+			toComm = -1234;
+			if (ret != SUCCESS) {
+				printf("MQTTPublish NOT: %d", ret);
+			}else{
+				printf("MQTTPublish wait I think it did: %d",ret);
+			}	
+			
+			break;
+		case 2: 
+			//publish to iupui/group2/light
+			printf("\n\nPublish to light\n\n");
+			
+			sprintf(msgbuf, "{\"light\":%d,}", toComm);
+			printf("\n\n%s\n\n",msgbuf);	
+			ret = MQTTPublish(&client, "iupui/group2/", &message);
+			toComm = -1234;
+			if (ret != SUCCESS) {
+				printf("MQTTPublish NOT: %d", ret);
+			}else{
+				printf("MQTTPublish wait I think it did: %d",ret);
+			}	
+			
+			break;
+		default:
+			//no publish
+			printf("\n\n | COMM TASK ERROR | Out-of-bounds value put into toComm\n\n");
+			break;
+
+			}//end switch case
+		
+			
+			
+
+		}
 			
 			printf("\n\n| COMM TASK | Before delay\n\n");
 			vTaskDelayUntil(&xLastWakeTime, xFrequency);

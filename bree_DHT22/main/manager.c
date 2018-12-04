@@ -32,7 +32,9 @@ void updateTempAvg(int toAdd){
 	tempAvg = 8*tempAvg; //weighted average: 80% current value, 20% new value
 	toAdd = 2*toAdd;
 	tempAvg += toAdd;
-	tempAvg = tempAvg/10;
+	tempAvg = tempAvg/10; 
+
+	toComm = (tempAvg*10)+0; //remove the value in the ones' place so communication task can see the name of this sensor
 	printf("\nWeighted Temperature Average: %d\n",tempAvg);
 }
 
@@ -43,6 +45,8 @@ void updateHumidAvg(int toAdd){
 	toAdd = 2*toAdd;
 	humidAvg += toAdd;
 	humidAvg = humidAvg/10;
+
+	toComm = (humidAvg*10)+1; //shift the humidity average by 10 so communications task can see the name of this sensor
 	printf("\nWeighted Humidity Average: %d\n",humidAvg);
 
 }
@@ -54,6 +58,8 @@ void updateLightAvg(int toAdd){
 	toAdd = 2*toAdd;
 	lightAvg += toAdd;
 	lightAvg = lightAvg/10;
+
+	toComm = (lightAvg*10)+2; //shift the light average by 10 so communications task can see the name of this sensor
 	printf("\nWeighted Light Average: %d\n",lightAvg);
 }
 

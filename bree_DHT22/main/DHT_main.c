@@ -27,6 +27,7 @@ For: DHT22 Temp & Humidity Sensor + LED
 //Damon: Create a task handle that's very visible to allow sensor.c to view it in the most unsafe manner possible
 TaskHandle_t handleDHT = NULL;
 TaskHandle_t handleHumid = NULL;
+
 int temp_read();
 int humid_read();
 
@@ -120,9 +121,18 @@ int temp_write(){
 	return ret;
 }
 
+
+void humid_close(){
+	vTaskSuspend(handleHumid);
+}
+
+void temp_close(){
+	vTaskSuspend(handleDHT);
+}
+
 void temp_open()
 {
-	
+	if(handleDHT == NULL){	//on first call, define this task
 	// DHT22 Read task code (from original DHT22 program)
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
@@ -131,8 +141,12 @@ void temp_open()
 	tempRow.read = temp_read;
 	tempRow.name = 1;
 	tempRow.write = temp_write;
+	tempRow.close = temp_close;
+	tempRow.open = temp_open;
 	devTable[rowsInUse++] = tempRow;
-	
+	}else{ //on every other call, resume this task
+		vTaskResume(handleDHT);
+	}
 	// LED Blink task code (from original LED Blink program)
 	//xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
 }
@@ -181,6 +195,7 @@ int humid_write(){
 
 void humid_open()
 {
+	if(handleHumid == NULL){ //on first call, define this task
 	// DHT22 Read task code (from original DHT22 program)
 	nvs_flash_init();
 	vTaskDelay( 1000 / portTICK_RATE_MS );
@@ -189,16 +204,13 @@ void humid_open()
 	struct row humidRow;
 	humidRow.read = humid_read;
 	humidRow.write = humid_write;
+	humidRow.open = humid_open;
+	humidRow.close = humid_close;
 	humidRow.name = 2;
 	devTable[rowsInUse++] = humidRow;
+	}else{ //on every other call, resume this task
+		vTaskResume(handleHumid);
+		
+	}
 }
-
-void humid_close(){
-	vTaskSuspend(&humid_task);
-}
-
-void temp_close(){
-	vTaskSuspend(&temp_task);
-}
-
 #endif

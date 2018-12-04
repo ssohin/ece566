@@ -2,7 +2,7 @@
 
 [ ] Get dust sensor working
 
-[ ] MQTT stuff
+[X] MQTT stuff
 
 [ ] Output to LEDs from Manager
 

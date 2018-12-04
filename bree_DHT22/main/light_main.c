@@ -78,6 +78,8 @@
 void tsl2561_output();
 int lightValueRead = 0;
 
+TaskHandle_t handleLight = NULL;
+
 static void i2c_master_init(void)
 {
     int i2c_master_port = I2C_MASTER_NUM;
@@ -131,7 +133,7 @@ void tsl2561_task(void * pvParameter)
         tsl2561_visible_t visible = 0;
         tsl2561_infrared_t infrared = 0;
         tsl2561_read(tsl2561_info, &visible, &infrared);
-	lightValueRead = visible;
+	lightValueRead = tsl2561_compute_lux(tsl2561_info, visible, infrared);
         /*printf("\nFull spectrum: %d\n", visible + infrared);
         printf("Infrared:      %d\n", infrared);
         printf("Visible:       %d\n", visible);
@@ -153,21 +155,29 @@ int light_write(){
 	return lightValueRead;
 }
 
+void light_close(){
+	vTaskSuspend(handleLight);
+}
+
+
 void light_open()
 {
-    xTaskCreate(&tsl2561_task, "tsl2561_task", 2048, NULL, 5, NULL);
+	if(handleLight == NULL){ //on first call, define this task
+    xTaskCreate(&tsl2561_task, "tsl2561_task", 2048, NULL, 5, handleLight);
 	struct row lightRow;
 	lightRow.read = light_read;
 	lightRow.write = light_write;
 	lightRow.name = 2;
+	lightRow.open = light_open;
+	lightRow.close = light_close;
 	devTable[rowsInUse++] = lightRow;
     // I2C/SMBus Test application
     //extern void test_smbus_task(void * pvParameter);
     //xTaskCreate(&test_smbus_task, "test_smbus_task", 2048, NULL, 5, NULL);
-}
-
-void light_close(){
-	vTaskSuspend(&tsl2561_task);
-}
-
+	}else{ //on every other call, resume this task
+ 		vTaskResume(handleLight);
+		
+		}
+	
+	}
 #endif

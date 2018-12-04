@@ -163,7 +163,6 @@ int humid_read(){
 		// The interval of whole process must be beyond 10 seconds !! 
 		
 		// Bree: I set this higher to make it wait longer; previously it updated every second or half second
-		vTaskDelay( 10000 / portTICK_RATE_MS );
 		//printf("\n| Humid_Read | Humidity Task has this name: %d",devTable[1].name);
 		return getHumidity();
 }
