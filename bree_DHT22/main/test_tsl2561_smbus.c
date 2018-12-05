@@ -40,6 +40,7 @@
 
 #include "../components/esp32-smbus/include/smbus.h"
 
+
 #define TAG "test"
 
 #define I2C_MASTER_NUM           I2C_NUM_0

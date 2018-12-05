@@ -97,7 +97,6 @@ static void i2c_master_init(void)
 }
 
 int light_read(){
-	//printf("\n |Light Read| Visible Light Value: %d\n", lightValueRead); //global variables are bad practice
 	return lightValueRead;
 }
 
@@ -139,9 +138,7 @@ void tsl2561_task(void * pvParameter)
         printf("Visible:       %d\n", visible);
         printf("Lux:           %d\n", tsl2561_compute_lux(tsl2561_info, visible, infrared));*/
 	light_read();
-	printf("\n\n| LIGHT TASK | Before delay\n\n");	
 	vTaskDelayUntil(&lLastWakeTime,lFrequency); 
-	printf("\n\n| LIGHT TASK | After delay\n\n");
     }
 }
 

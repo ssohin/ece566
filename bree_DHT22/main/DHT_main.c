@@ -28,29 +28,55 @@ For: DHT22 Temp & Humidity Sensor + LED
 TaskHandle_t handleDHT = NULL;
 TaskHandle_t handleHumid = NULL;
 
+
+
 int temp_read();
 int humid_read();
 
 int tempValue = 0; //read updates these values, write puts them onto the queue
 int humidValue = 0;
 
+float SSt = 0; //to find the standard deviation of temperature task, take sum of values and sum of squared values, then divide by n
+float St = 0;
+int nt = 0;
+
+int TEMP_TASK_PERIOD = 100;
+
 // Bree: define DHT22 task function
 void temp_task(void *pvParameter)
 {
 		//define values used in vTaskDelayUntil() to make task periodic
 		TickType_t xLastWakeTime;
+		TickType_t x2DoneWithTask;
 		//portTICK_RATE_MS converts from ms to ticks, allowing me to say
 		//"10000 milliseconds" and not care about my board's tick rate
-		const TickType_t xFrequency = 10000*portTICK_RATE_MS;
+		const TickType_t xFrequency = TEMP_TASK_PERIOD;
 
 	while(1){
 		xLastWakeTime = xTaskGetTickCount();
 
 		temp_read(); //temp_task periodically updates the value
-		printf("\n\n| TEMP TASK | Before delay\n\n");
+		
+		/* //For dev use only. Used in determining task characteristics
+		x2DoneWithTask = xTaskGetTickCount();
+		
+		
+		St += x2DoneWithTask - xLastWakeTime;
+		SSt += (x2DoneWithTask - xLastWakeTime)*(x2DoneWithTask - xLastWakeTime);
+		nt++;
+		
+		printf("\n\nTemp Task Info: %d Ticks to complete task",(x2DoneWithTask - xLastWakeTime));
+		printf("\nTemp Task Info: %f is Standard Deviation", ((SSt/nt) - (St/nt)*(St/nt))); //this is 0 because DHT22 takes 3 ticks to read by design
+		printf("\nTemp Task Info: %d is Temperature Slack Time", 100 - (x2DoneWithTask - xLastWakeTime));
+		printf("\nTemp Task Info: %d is utilization", (x2DoneWithTask - xLastWakeTime)/TEMP_TASK_PERIOD);
+		printf("\nTemp Task Info: %d is Task Period", TEMP_TASK_PERIOD);
+		*/ //
+		
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
-		printf("\n\n| TEMP TASK | After delay\n\n");
+		
+	
 	}
+
 }
 
 void humid_task(void *pvParameter)
@@ -61,9 +87,7 @@ void humid_task(void *pvParameter)
 	while(1){
 		hLastWakeTime = xTaskGetTickCount();
 		humid_read();
-		printf("\n\n| HUMID TASK | Before delay\n\n");
 		vTaskDelayUntil(&hLastWakeTime, hFrequency);
-		printf("\n\n| HUMID TASK | After delay\n\n");
 	}
 }
 

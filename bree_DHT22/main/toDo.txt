@@ -2,8 +2,19 @@
 
 [ ] Get dust sensor working
 
+[ ] Get gas sensor working
+
 [X] MQTT stuff
 
 [ ] Output to LEDs from Manager
 
+[ ] Write to OLED
+
 [ ] Change Manager to require a password on startup
+
+[ ] Check for USB input periodically in manager and have manager require a password then
+	[ ] Check 5V(?) voltage via GPIO, it is apparently connected directly to the USB connection
+	[ ] Implement user controls after password put in
+	[ ] Check a flag to output read values to screen only after password input
+	
+[ ] Install a battery so code can continue after disconnection

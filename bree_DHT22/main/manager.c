@@ -4,63 +4,110 @@
 #include "sensor.c"
 #include "fileTable.h"
 #include "communications.c"
+#include "command.c"
 
 TaskHandle_t handleManage = NULL;
 void manage_task();
 int tempAvg;
 int humidAvg;
 int lightAvg;
+
+gpio_num_t SUPERUSER_GPIO = GPIO_NUM_27; //variables to make them easier to change
+
+
 int sort; //sort looks at the first digit off of top of queue, then sends it to correct averaging value
 
 void app_main(){
+	
 	temp_open();
 	humid_open(); //open all of the tasks we'll need and put them on the stack. We implemented it this way to make the Mnager more modular, but same idea as example code in class.
 	light_open();
-	q_app_main();
+	
+	q_app_main(); //these are data structures used by the manager to control the rest of the system.
+	command_open();
 	sense_open();
 	comms_open();
-	tempAvg = temp_write()/10;
+	command_open();
+	
+	vTaskDelay( 10000 / portTICK_RATE_MS ); //wait 10 seconds on startup because sensors want that much time between readings
+	tempAvg = temp_write()/10; //then set initial values
 	humidAvg = humid_write()/10;
 	lightAvg = light_write()/10;
 	nvs_flash_init();
-	vTaskDelay( 1000 / portTICK_RATE_MS );
 	xTaskCreate( &manage_task, "ManageTask", 2048, NULL, 5, &handleManage );
 }
 
 void updateTempAvg(int toAdd){
+	
 	toAdd = toAdd/10;
-	tempAvg = 8*tempAvg; //weighted average: 80% current value, 20% new value
-	toAdd = 2*toAdd;
+	tempAvg = 6*tempAvg; //weighted average: 80% current value, 20% new value
+	toAdd = 4*toAdd;
 	tempAvg += toAdd;
 	tempAvg = tempAvg/10; 
 
 	toComm = (tempAvg*10)+0; //remove the value in the ones' place so communication task can see the name of this sensor
 	printf("\nWeighted Temperature Average: %d\n",tempAvg);
+	
+	//set temperature's signature value for command task
+	if(tempAvg > 40){
+		signature[0] = 2; //probably fire
+	}else if(tempAvg > 25){
+		signature[0] = 1; //hot summer day
+	}else if(tempAvg > 20){
+		signature[0] = 0; //20-25C is about room temperature
+	}else if(tempAvg > 15){
+		signature[0] = -1; //cold winter day outside
+	}else
+		signature[0] = -2; //terrifying apocalyptic event
+	
 }
 
 void updateHumidAvg(int toAdd){
 	
 	toAdd = toAdd/10;
-	humidAvg = 8*humidAvg; //weighted average: 80% current value, 20% new value
-	toAdd = 2*toAdd;
+	humidAvg = 6*humidAvg; //weighted average: 80% current value, 20% new value
+	toAdd = 4*toAdd;
 	humidAvg += toAdd;
 	humidAvg = humidAvg/10;
 
 	toComm = (humidAvg*10)+1; //shift the humidity average by 10 so communications task can see the name of this sensor
 	printf("\nWeighted Humidity Average: %d\n",humidAvg);
+	
+	if(humidAvg > 50){
+		signature[1] = 2; //way too humid
+	}else if(humidAvg > 40){
+		signature[1] = 1; //still too humid but a believable amount
+	}else if(humidAvg > 25){
+		signature[1] = 0; //20-25C is about room temperature
+	}else if(humidAvg > 15){
+		signature[1] = -1; //dry day
+	}else
+		signature[1] = -2; //terrifying apocalyptic event
 
 }
 
 void updateLightAvg(int toAdd){
-
+	
+	
 	toAdd = toAdd/10;
-	lightAvg = 8*lightAvg; //weighted average: 80% current value, 20% new value
-	toAdd = 2*toAdd;
+	lightAvg = 6*(lightAvg)*(lightAvg); //weighted average: 80% current value, 20% new value
+	toAdd = 4*toAdd;
 	lightAvg += toAdd;
 	lightAvg = lightAvg/10;
 
 	toComm = (lightAvg*10)+2; //shift the light average by 10 so communications task can see the name of this sensor
 	printf("\nWeighted Light Average: %d\n",lightAvg);
+	
+	if(lightAvg > 400){
+		signature[2] = 2; //possible that the sun exploded
+	}else if(lightAvg > 300){
+		signature[2] = 1; //still too bright
+	}else if(lightAvg > 200){
+		signature[2] = 0; //I think this is normal? Need to calibrate this
+	}else if(lightAvg > 100){
+		signature[2] = -1; //normal night darkness
+	}else
+		signature[2] = -2; //terrifying apocalyptic event
 }
 
 void noUpdates(){
@@ -68,7 +115,7 @@ void noUpdates(){
 }
 
 void manage_task(){
-	int name;
+	int name; //name is the "name" of the sensor, put into the ones place for ease of reading
 	int tableIndex;
 
 	TickType_t xLastWakeTime;
@@ -96,10 +143,19 @@ void manage_task(){
 			noUpdates();
 			break;
 
-			}//end switch case
-		
-		vTaskDelayUntil(&xLastWakeTime,xFrequency);
-		
+			}//end switch case		
+	
+	
+
+
+				
 		}//end tableIndexing
+	
+		vTaskDelayUntil(&xLastWakeTime,xFrequency);
+
+		//now that values have been updated, check if USB has been connected
+		if(gpio_get_level(GPIO_NUM_27)){
+		printf("\n\nPlease enter your password: \n\n");
+		}
 	}//end whileLoop for manager task
 }//end manager task

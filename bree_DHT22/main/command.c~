@@ -1,0 +1,25 @@
+#include "fileTable.h"
+
+TaskHandle_t handleCommand = NULL;
+
+void command_task(void* pvParameter){ //go through the signature array to see if any values or combination of values are dangerous, then set various LEDs to represent system responses
+
+	    TickType_t CommandLastWakeTime;
+    const TickType_t CommandFrequency = 2000*portTICK_RATE_MS; //period of two seconds because things like fire and the need to turn on AC are important
+	
+	while(1){
+		
+		CommandLastWakeTime = xTaskGetTickCount();
+		
+		printf("\n\n| Command TASK | Before delay\n\n");
+		vTaskDelayUntil(&CommandLastWakeTime, CommandFrequency);
+		printf("\n\n| Command TASK | After delay\n\n");
+		
+	}
+	
+}
+
+void command_open(){
+	xTaskCreate(&command_task, "command_task", 1024, NULL, 5, handleCommand);
+	
+}

@@ -157,6 +157,7 @@ void mqtt_task(void *pvParameters)
         message.payload = (void*)msgbuf;
         message.payloadlen = strlen(msgbuf)+1;
 		
+		
 		if(toComm != -1234){
 
 	switch(toComm%10){
