@@ -33,6 +33,7 @@
 #include "mbedtls/certs.h"
 
 #include "fileTable.h"
+#include "qExample.c"
 
 /* The examples use simple WiFi configuration that you can set via
    'make menuconfig'.
@@ -100,7 +101,7 @@ void mqtt_task(void *pvParameters)
 		TickType_t xLastWakeTime;
 		//portTICK_RATE_MS converts from ms to ticks, allowing me to say
 		//"10000 milliseconds" and not care about my board's tick rate
-		const TickType_t xFrequency = 10000*portTICK_RATE_MS;
+		const TickType_t xFrequency = 5000*portTICK_RATE_MS;
 	while(1){
 			xLastWakeTime = xTaskGetTickCount();
 			Network network;
@@ -157,8 +158,8 @@ void mqtt_task(void *pvParameters)
         message.payload = (void*)msgbuf;
         message.payloadlen = strlen(msgbuf)+1;
 		
+		toComm = popW();	
 		
-		if(toComm != -1234){
 
 	switch(toComm%10){
 		case 0:
@@ -214,11 +215,11 @@ void mqtt_task(void *pvParameters)
 			
 			
 
-		}
+		
 			
-			printf("\n\n| COMM TASK | Before delay\n\n");
+			//printf("\n\n| COMM TASK | Before delay\n\n");
 			vTaskDelayUntil(&xLastWakeTime, xFrequency);
-			printf("\n\n| COMM TASK | After delay\n\n");
+			//printf("\n\n| COMM TASK | After delay\n\n");
 	
 exit:
     MQTTDisconnect(&client);

@@ -13,7 +13,7 @@ int humidAvg;
 int lightAvg;
 
 gpio_num_t SUPERUSER_GPIO = GPIO_NUM_27; //variables to make them easier to change
-
+char input[20];
 
 int sort; //sort looks at the first digit off of top of queue, then sends it to correct averaging value
 
@@ -29,7 +29,6 @@ void app_main(){
 	comms_open();
 	command_open();
 	
-	vTaskDelay( 10000 / portTICK_RATE_MS ); //wait 10 seconds on startup because sensors want that much time between readings
 	tempAvg = temp_write()/10; //then set initial values
 	humidAvg = humid_write()/10;
 	lightAvg = light_write()/10;
@@ -38,15 +37,15 @@ void app_main(){
 }
 
 void updateTempAvg(int toAdd){
-	
+	int tempTempAvg;
 	toAdd = toAdd/10;
-	tempAvg = 6*tempAvg; //weighted average: 80% current value, 20% new value
+	tempAvg = 6*tempAvg; //weighted average: 60% current value, 40% new value
 	toAdd = 4*toAdd;
 	tempAvg += toAdd;
-	tempAvg = tempAvg/10; 
-
-	toComm = (tempAvg*10)+0; //remove the value in the ones' place so communication task can see the name of this sensor
-	printf("\nWeighted Temperature Average: %d\n",tempAvg);
+	tempAvg = tempAvg/10;
+       	tempTempAvg = tempAvg*10;
+	pushW(&tempTempAvg);
+//	printf("\nWeighted Temperature Average: %d\n",tempAvg);
 	
 	//set temperature's signature value for command task
 	if(tempAvg > 40){
@@ -63,15 +62,15 @@ void updateTempAvg(int toAdd){
 }
 
 void updateHumidAvg(int toAdd){
-	
+	int tempHumidAvg;
 	toAdd = toAdd/10;
-	humidAvg = 6*humidAvg; //weighted average: 80% current value, 20% new value
+	humidAvg = 6*humidAvg; //weighted average: 60% current value, 40% new value
 	toAdd = 4*toAdd;
 	humidAvg += toAdd;
 	humidAvg = humidAvg/10;
-
-	toComm = (humidAvg*10)+1; //shift the humidity average by 10 so communications task can see the name of this sensor
-	printf("\nWeighted Humidity Average: %d\n",humidAvg);
+	tempHumidAvg = (humidAvg*10)+1;
+	pushW(&tempHumidAvg);;
+//	printf("\nWeighted Humidity Average: %d\n",humidAvg);
 	
 	if(humidAvg > 50){
 		signature[1] = 2; //way too humid
@@ -88,15 +87,15 @@ void updateHumidAvg(int toAdd){
 
 void updateLightAvg(int toAdd){
 	
-	
+	int tempLightAvg;
 	toAdd = toAdd/10;
-	lightAvg = 6*(lightAvg)*(lightAvg); //weighted average: 80% current value, 20% new value
+	lightAvg = 6*(lightAvg)*(lightAvg); //weighted average: 60% current value, 40% new value
 	toAdd = 4*toAdd;
 	lightAvg += toAdd;
 	lightAvg = lightAvg/10;
-
-	toComm = (lightAvg*10)+2; //shift the light average by 10 so communications task can see the name of this sensor
-	printf("\nWeighted Light Average: %d\n",lightAvg);
+	tempLightAvg = (lightAvg*10)+2;
+	pushW(&tempLightAvg);	
+//	printf("\nWeighted Light Average: %d\n",lightAvg);
 	
 	if(lightAvg > 400){
 		signature[2] = 2; //possible that the sun exploded
@@ -120,13 +119,14 @@ void manage_task(){
 
 	TickType_t xLastWakeTime;
 	//every ten seconds, read off from the queue
-	const TickType_t xFrequency = 10000*portTICK_RATE_MS;
+	const TickType_t xFrequency = 15000*portTICK_RATE_MS;
 	while(1){
 	//to test that the functions are working properly
 	xLastWakeTime = xTaskGetTickCount();
 	
 	for(tableIndex = 0; tableIndex < rowsInUse; tableIndex++){		
 	sort = popQ();
+	printf("\nManager Task: %d is popQ\n", sort);
 	name = sort%10; //name is stored in ones' place of sort, so this works I think
 
 	switch(name){
@@ -154,8 +154,7 @@ void manage_task(){
 		vTaskDelayUntil(&xLastWakeTime,xFrequency);
 
 		//now that values have been updated, check if USB has been connected
-		if(gpio_get_level(GPIO_NUM_27)){
-		printf("\n\nPlease enter your password: \n\n");
-		}
+//		printf("\n\nPlease enter your password: \n\n");
+//		scanf("%s",input);
 	}//end whileLoop for manager task
 }//end manager task

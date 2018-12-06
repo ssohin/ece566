@@ -20,31 +20,37 @@ void command_task(void* pvParameter){ //go through the signature array to see if
 		
 		if(signature[0] == 2 && signature[4] == 2){ //heat and particle sensors both going nuts
 				gpio_set_level(FIRE_ALARM_GPIO, 1);
-				printf("\n\nFIRE!\n\n");
+				
+				if(passFlag == 1){ printf("\n\nFIRE!\n\n"); }
+			
 			}else
 				gpio_set_level(FIRE_ALARM_GPIO, 0);
 		
 		if(signature[0] < 0 && signature[2] > -1){ //if lights are on (i.e., employees in the building) and temperature is below 20C, power furnace
-					gpio_set_level(FURNACE_GPIO, 1);
-					printf("\n\nTurning on furnace\n\n");
+				gpio_set_level(FURNACE_GPIO, 1);
+				
+				if(passFlag == 1){ printf("\n\nTurning on furnace %d\n\n", passFlag); }
 		}else
 			gpio_set_level(FURNACE_GPIO, 0);
 		
 		if(signature[0] > 0 && signature[2] > -1){ //if lights are on and temperature is above 25C, power AC
 				gpio_set_level(AC_GPIO, 1);
-				printf("\n\nTurning on air conditioning\n\n");
+
+				if(passFlag == 1){ printf("\n\nTurning on air conditioning\n\n"); }
 		}else
 			gpio_set_level(AC_GPIO, 1);
 		
 		if(signature[1] > 0 && signature[2] > -1){ //if lights are on and humidity is up, use dehumidifier
 				gpio_set_level(HUMIDIFIER_GPIO, 1);
-				printf("\n\nTurning on dehumidifier");
+			
+				if(passFlag == 1){ printf("\n\nTurning on dehumidifier"); }
 		}else
 				gpio_set_level(HUMIDIFIER_GPIO, 0);
 		
 		if(signature[3] > 0){ //if gas leak detected, raise an alarm regardless of the time of day
-			gpio_set_level(GAS_LEAK_GPIO, 1);
-			printf("\n\nPOSSIBLE GAS LEAK\n\n");
+				gpio_set_level(GAS_LEAK_GPIO, 1);
+
+				if(passFlag == 1) {printf("\n\nPOSSIBLE GAS LEAK\n\n"); }
 		}else
 			gpio_set_level(GAS_LEAK_GPIO, 0);
 		

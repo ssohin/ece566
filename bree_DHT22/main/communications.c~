@@ -33,6 +33,7 @@
 #include "mbedtls/certs.h"
 
 #include "fileTable.h"
+#include "qExample.c"
 
 /* The examples use simple WiFi configuration that you can set via
    'make menuconfig'.
@@ -100,7 +101,7 @@ void mqtt_task(void *pvParameters)
 		TickType_t xLastWakeTime;
 		//portTICK_RATE_MS converts from ms to ticks, allowing me to say
 		//"10000 milliseconds" and not care about my board's tick rate
-		const TickType_t xFrequency = 10000*portTICK_RATE_MS;
+		const TickType_t xFrequency = 5000*portTICK_RATE_MS;
 	while(1){
 			xLastWakeTime = xTaskGetTickCount();
 			Network network;
@@ -157,7 +158,8 @@ void mqtt_task(void *pvParameters)
         message.payload = (void*)msgbuf;
         message.payloadlen = strlen(msgbuf)+1;
 		
-		if(toComm != -1234){
+		toComm = popW();	
+		
 
 	switch(toComm%10){
 		case 0:
@@ -192,9 +194,9 @@ void mqtt_task(void *pvParameters)
 			//publish to iupui/group2/light
 			printf("\n\nPublish to light\n\n");
 			
-			sprintf(msgbuf, "{\"temperature\":%d,}", toComm);
+			sprintf(msgbuf, "{\"light\":%d,}", toComm);
 			printf("\n\n%s\n\n",msgbuf);	
-			ret = MQTTPublish(&client, "iupui/group2", &message);
+			ret = MQTTPublish(&client, "iupui/group2/", &message);
 			toComm = -1234;
 			if (ret != SUCCESS) {
 				printf("MQTTPublish NOT: %d", ret);
@@ -213,13 +215,13 @@ void mqtt_task(void *pvParameters)
 			
 			
 
-		}
+		
 			
 			printf("\n\n| COMM TASK | Before delay\n\n");
 			vTaskDelayUntil(&xLastWakeTime, xFrequency);
 			printf("\n\n| COMM TASK | After delay\n\n");
 	
-exit:
+exit: printf("made it to exit!\n\n");
     MQTTDisconnect(&client);
     NetworkDisconnect(&network);
 	}

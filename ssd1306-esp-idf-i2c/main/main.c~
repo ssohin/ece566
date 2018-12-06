@@ -11,8 +11,8 @@
 #include "ssd1366.h"
 #include "font8x8_basic.h"
 
-#define SDA_PIN 4
-#define SCL_PIN 15
+#define SDA_PIN 15
+#define SCL_PIN 2
 
 #define tag "SSD1306"
 

@@ -14,6 +14,7 @@
 
 
 QueueHandle_t  q=NULL;
+QueueHandle_t  w=NULL;
 /*
 void consumer_task(void *pvParameter)
 
@@ -83,6 +84,18 @@ int popQ(){
 	return (int)storage;
 }
 
+int popW(){ //w holds the values manager wants communicated
+	unsigned long storage;
+	xQueueReceive(w,&storage,(TickType_t )(1000/portTICK_PERIOD_MS));
+	//printf("\nValue read off queue: %lu \n",storage);
+	return (int)storage;
+}
+
+void pushW(int* input){
+	xQueueSend(w,input,(TickType_t)0);
+	//printf("\nValue sent to queue: %d\n",*input);
+	vTaskDelay(1000/portTICK_PERIOD_MS);
+}
 
 void q_app_main()
 
@@ -90,9 +103,11 @@ void q_app_main()
 
     q=xQueueCreate(20,sizeof(unsigned long));
 
-    if(q != NULL){
+    w=xQueueCreate(20,sizeof(unsigned long));
 
-        printf("Queue is created\n");
+    if(q != NULL && w != NULL){
+
+        printf("Queues are created\n");
 
         vTaskDelay(1000/portTICK_PERIOD_MS); //wait for a second
 

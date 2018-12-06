@@ -1,19 +1,64 @@
+#include <stdio.h>
 #include "fileTable.h"
+#include "DHT_main.c"
 
 TaskHandle_t handleCommand = NULL;
+gpio_num_t FIRE_ALARM_GPIO = GPIO_NUM_14; //variables to make them easier to change
+gpio_num_t FURNACE_GPIO = GPIO_NUM_15;
+gpio_num_t AC_GPIO = GPIO_NUM_16;
+gpio_num_t HUMIDIFIER_GPIO = GPIO_NUM_17;
+gpio_num_t GAS_LEAK_GPIO = GPIO_NUM_18;
 
 void command_task(void* pvParameter){ //go through the signature array to see if any values or combination of values are dangerous, then set various LEDs to represent system responses
 
-	    TickType_t CommandLastWakeTime;
+    TickType_t CommandLastWakeTime;
     const TickType_t CommandFrequency = 2000*portTICK_RATE_MS; //period of two seconds because things like fire and the need to turn on AC are important
 	
-	while(1){
+	while(1){ //task goes through signature[] and sets output values based on dangerous scenarios
 		
 		CommandLastWakeTime = xTaskGetTickCount();
 		
-		printf("\n\n| Command TASK | Before delay\n\n");
+		if(signature[0] == 2 && signature[4] == 2){ //heat and particle sensors both going nuts
+				gpio_set_level(FIRE_ALARM_GPIO, 1);
+				
+				if(passFlag == 1){ printf("\n\nFIRE!\n\n"); }
+			
+			}else
+				gpio_set_level(FIRE_ALARM_GPIO, 0);
+		
+		if(signature[0] < 0 && signature[2] > -1){ //if lights are on (i.e., employees in the building) and temperature is below 20C, power furnace
+				gpio_set_level(FURNACE_GPIO, 1);
+				
+				if(passFlag == 1){ printf("\n\nTurning on furnace\n\n"); }
+		}else
+			gpio_set_level(FURNACE_GPIO, 0);
+		
+		if(signature[0] > 0 && signature[2] > -1){ //if lights are on and temperature is above 25C, power AC
+				gpio_set_level(AC_GPIO, 1);
+
+				if(passFlag == 1){ printf("\n\nTurning on air conditioning\n\n"); }
+		}else
+			gpio_set_level(AC_GPIO, 1);
+		
+		if(signature[1] > 0 && signature[2] > -1){ //if lights are on and humidity is up, use dehumidifier
+				gpio_set_level(HUMIDIFIER_GPIO, 1);
+			
+				if(passFlag == 1){ printf("\n\nTurning on dehumidifier"); }
+		}else
+				gpio_set_level(HUMIDIFIER_GPIO, 0);
+		
+		if(signature[3] > 0){ //if gas leak detected, raise an alarm regardless of the time of day
+				gpio_set_level(GAS_LEAK_GPIO, 1);
+
+				if(passFlag == 1) {printf("\n\nPOSSIBLE GAS LEAK\n\n"); }
+		}else
+			gpio_set_level(GAS_LEAK_GPIO, 0);
+		
+		
+		
+		
 		vTaskDelayUntil(&CommandLastWakeTime, CommandFrequency);
-		printf("\n\n| Command TASK | After delay\n\n");
+
 		
 	}
 	
