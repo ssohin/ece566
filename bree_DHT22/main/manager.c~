@@ -14,6 +14,7 @@ int lightAvg;
 
 gpio_num_t SUPERUSER_GPIO = GPIO_NUM_27; //variables to make them easier to change
 char input[20];
+char password[] = "TestPassword";
 
 int sort; //sort looks at the first digit off of top of queue, then sends it to correct averaging value
 
@@ -45,7 +46,7 @@ void updateTempAvg(int toAdd){
 	tempAvg = tempAvg/10;
        	tempTempAvg = tempAvg*10;
 	pushW(&tempTempAvg);
-	printf("\nWeighted Temperature Average: %d\n",tempAvg);
+//	printf("\nWeighted Temperature Average: %d\n",tempAvg);
 	
 	//set temperature's signature value for command task
 	if(tempAvg > 40){
@@ -70,7 +71,7 @@ void updateHumidAvg(int toAdd){
 	humidAvg = humidAvg/10;
 	tempHumidAvg = (humidAvg*10)+1;
 	pushW(&tempHumidAvg);;
-	printf("\nWeighted Humidity Average: %d\n",humidAvg);
+//	printf("\nWeighted Humidity Average: %d\n",humidAvg);
 	
 	if(humidAvg > 50){
 		signature[1] = 2; //way too humid
@@ -95,7 +96,7 @@ void updateLightAvg(int toAdd){
 	lightAvg = lightAvg/10;
 	tempLightAvg = (lightAvg*10)+2;
 	pushW(&tempLightAvg);	
-	printf("\nWeighted Light Average: %d\n",lightAvg);
+//	printf("\nWeighted Light Average: %d\n",lightAvg);
 	
 	if(lightAvg > 400){
 		signature[2] = 2; //possible that the sun exploded
@@ -154,7 +155,10 @@ void manage_task(){
 		vTaskDelayUntil(&xLastWakeTime,xFrequency);
 
 		//now that values have been updated, check if USB has been connected
-//		printf("\n\nPlease enter your password: \n\n");
+		printf("\n\nPlease enter your password: \n\n");
 //		scanf("%s",input);
+//		if(input == password){
+//			passFlag = 1;
+//		}
 	}//end whileLoop for manager task
 }//end manager task

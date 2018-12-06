@@ -14,6 +14,7 @@ int lightAvg;
 
 gpio_num_t SUPERUSER_GPIO = GPIO_NUM_27; //variables to make them easier to change
 char input[20];
+char password[] = "TestPassword";
 
 int sort; //sort looks at the first digit off of top of queue, then sends it to correct averaging value
 
@@ -153,8 +154,5 @@ void manage_task(){
 	
 		vTaskDelayUntil(&xLastWakeTime,xFrequency);
 
-		//now that values have been updated, check if USB has been connected
-//		printf("\n\nPlease enter your password: \n\n");
-//		scanf("%s",input);
 	}//end whileLoop for manager task
 }//end manager task

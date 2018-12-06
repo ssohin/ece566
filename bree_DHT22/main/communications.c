@@ -238,8 +238,8 @@ static void initialise_wifi(void)
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = "ThatGoodGood",
-            .password = "iFhPtHm69420",
+            .ssid = "AndroidAP",
+            .password = "yepd3338",
         },
     };
     ESP_LOGI(CTAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);

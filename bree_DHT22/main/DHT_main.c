@@ -40,6 +40,10 @@ float SSt = 0; //to find the standard deviation of temperature task, take sum of
 float St = 0;
 int nt = 0;
 
+float SSh = 0;
+float Sh = 0;
+int nh = 0;
+
 int TEMP_TASK_PERIOD = 10000;
 int HUMID_TASK_PERIOD = 10000; 
 
@@ -82,11 +86,30 @@ void humid_task(void *pvParameter)
 {
 	//see temp_task for explanation of periodic task control
 	TickType_t hLastWakeTime;
+	TickType_t h2DoneWithTask;
 	const TickType_t hFrequency = 10000*portTICK_RATE_MS;
 	while(1){
 		hLastWakeTime = xTaskGetTickCount();
-		humid_read();
+		humid_read(); //temp_task periodically updates the value
+		
+		//For dev use only. Used in determining task characteristics
+		h2DoneWithTask = xTaskGetTickCount();
+		
+		
+		Sh += h2DoneWithTask - hLastWakeTime;
+		SSh += (h2DoneWithTask - hLastWakeTime)*(h2DoneWithTask - hLastWakeTime);
+		nh++;
+		
+		printf("\n\nTemp Task Info: %d Ticks to complete task",(h2DoneWithTask - hLastWakeTime));
+		printf("\nTemp Task Info: %f is Standard Deviation", ((SSh/nh) - (Sh/nh)*(Sh/nh))); //this is 0 because DHT22 takes 3 ticks to read by design
+		printf("\nTemp Task Info: %d is Temperature Slack Time", 100 - (h2DoneWithTask - hLastWakeTime));
+		printf("\nTemp Task Info: %d is utilization", (h2DoneWithTask - hLastWakeTime)/HUMID_TASK_PERIOD);
+		printf("\nTemp Task Info: %d is Task Period", HUMID_TASK_PERIOD);
+		 //
+		
 		vTaskDelayUntil(&hLastWakeTime, hFrequency);
+		
+
 	}
 }
 
