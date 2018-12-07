@@ -168,7 +168,7 @@ void mqtt_task(void *pvParameters)
 			sprintf(msgbuf, "{\"temperature\":%d,}", toComm);
 			printf("\n\n%s\n\n",msgbuf);	
 			ret = MQTTPublish(&client, "iupui/group2/", &message);
-			toComm = -1234;
+			//toComm = -1234;
 			if (ret != SUCCESS) {
 					printf("MQTTPublish NOT: %d", ret);
 			}else{

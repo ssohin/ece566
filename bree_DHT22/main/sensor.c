@@ -21,7 +21,7 @@ void sense_task(){
 		//sensor task just calls the write() functions, which push read values onto the shared queue
 		sLastWakeTime = xTaskGetTickCount();
 		for(tableIndex = 0; tableIndex < rowsInUse; tableIndex++){
-			//printf("\n|SENSE TASK| tableIndex = %d and read value is %d ", tableIndex, devTable[tableIndex].write()/10);
+			printf("\n|SENSE TASK| tableIndex = %d and read value is %d ", tableIndex, devTable[tableIndex].write()/10);
 		}
 	
 	vTaskDelayUntil(&sLastWakeTime, sFrequency);
