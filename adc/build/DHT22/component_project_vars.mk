@@ -1,0 +1,7 @@
+# Automatically generated build file. Do not edit.
+COMPONENT_INCLUDES += $(IDF_PATH)/components/DHT22/include
+COMPONENT_LDFLAGS += -L$(BUILD_DIR_BASE)/DHT22 -lDHT22
+COMPONENT_LINKER_DEPS += 
+COMPONENT_SUBMODULES += 
+COMPONENT_LIBRARIES += DHT22
+component-DHT22-build: 
